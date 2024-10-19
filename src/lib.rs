@@ -36,19 +36,27 @@ impl ShapeVisitor for AreaVisitor {
 }
 
 struct PerimeterVisitor {
+    perimeter: RefCell<f64>,
 }
 
 impl PerimeterVisitor {
     fn new() -> Box<dyn ShapeVisitor> {
         Box::new(PerimeterVisitor {
+            perimeter: RefCell::new(0.0),
         })
     }
 }
 
 impl ShapeVisitor for PerimeterVisitor {
     fn visit_circle(&self, circle: &Circle) {
+        let radius = *circle.radius.borrow();
+        let perimeter = PI * radius * radius;
+        *self.perimeter.borrow_mut() += perimeter;
     }
     fn visit_square(&self, square: &Square) {
+        let side_length = *square.side_length.borrow();
+        let perimeter = side_length * 4.0;
+        *self.perimeter.borrow_mut() += perimeter;
     }
     fn as_any(&self) -> &dyn Any {
         self
@@ -129,5 +137,37 @@ mod tests {
 
         // then
         assert_eq!(area, 1.0);
+    }
+
+    #[test]
+    fn should_calculate_the_perimeter_of_a_circle() {
+        // given
+        let radius = 1.0;
+        let circle = Circle::new(radius);
+        let visitor = PerimeterVisitor::new();
+
+        // when
+        circle.accept(visitor.as_ref());
+        let perimeter_visitor = visitor.as_any().downcast_ref::<PerimeterVisitor>().unwrap();
+        let perimeter = *perimeter_visitor.perimeter.borrow();
+
+        // then
+        assert_eq!(perimeter, PI);
+    }
+
+    #[test]
+    fn should_calculate_the_perimeter_of_a_square() {
+        // given
+        let side_length = 1.0;
+        let square = Square::new(side_length);
+        let visitor = PerimeterVisitor::new();
+
+        // when
+        square.accept(visitor.as_ref());
+        let perimeter_visitor = visitor.as_any().downcast_ref::<PerimeterVisitor>().unwrap();
+        let perimeter = *perimeter_visitor.perimeter.borrow();
+
+        // then
+        assert_eq!(perimeter, 4.0);
     }
 }
