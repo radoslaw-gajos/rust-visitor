@@ -22,7 +22,8 @@ impl AreaVisitor {
 
 impl ShapeVisitor for AreaVisitor {
     fn visit_circle(&self, circle: &Circle) {
-        let area = 2.0 * *circle.radius.borrow() * PI;
+        let radius = *circle.radius.borrow();
+        let area = PI * radius * radius;
         *self.area.borrow_mut() += area;
     }
     fn visit_square(&self, square: &Square) {
@@ -49,8 +50,7 @@ impl PerimeterVisitor {
 
 impl ShapeVisitor for PerimeterVisitor {
     fn visit_circle(&self, circle: &Circle) {
-        let radius = *circle.radius.borrow();
-        let perimeter = PI * radius * radius;
+        let perimeter = 2.0 * *circle.radius.borrow() * PI;
         *self.perimeter.borrow_mut() += perimeter;
     }
     fn visit_square(&self, square: &Square) {
@@ -117,10 +117,10 @@ mod tests {
         // when
         circle.accept(visitor.as_ref());
         let area_visitor = visitor.as_any().downcast_ref::<AreaVisitor>().unwrap();
-        let area = *area_visitor.area.borrow();
+        let perimeter = *area_visitor.area.borrow();
 
         // then
-        assert_eq!(area, 2.0 * PI);
+        assert_eq!(perimeter, PI);
     }
 
     #[test]
@@ -149,10 +149,10 @@ mod tests {
         // when
         circle.accept(visitor.as_ref());
         let perimeter_visitor = visitor.as_any().downcast_ref::<PerimeterVisitor>().unwrap();
-        let perimeter = *perimeter_visitor.perimeter.borrow();
+        let area = *perimeter_visitor.perimeter.borrow();
 
         // then
-        assert_eq!(perimeter, PI);
+        assert_eq!(area, 2.0 * PI);
     }
 
     #[test]
